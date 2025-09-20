@@ -304,9 +304,12 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
                 indent = len(line) - len(line.lstrip())
                 trace_call = f' ' * indent + "_tracer.trace_permutation_step(4, locals())"
                 modified_lines.insert(-1, trace_call)
-                # 在递归调用后添加返回追踪
-                return_trace = f' ' * indent + "_tracer.trace_permutation_return(locals())"
-                modified_lines.append(return_trace)
+            
+            # 在return语句之前添加返回追踪
+            elif "return" in line and line.strip() == "return":
+                indent = len(line) - len(line.lstrip())
+                return_trace = f' ' * indent + "_tracer.trace_permutation_return(None, locals())"
+                modified_lines.insert(-1, return_trace)
         
         return '\n'.join(modified_lines)
     
@@ -342,22 +345,29 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
         if step_number == 1:  # 基本情况检查
             condition_met = start == len(nums)
             if condition_met:
-                status = "✅ 达到边界，添加排列"
+                status = "✅"
                 step_result = f"添加 {nums} 到结果"
             else:
-                status = "❌ 条件不满足，继续递归"
+                status = "❌"
                 step_result = None
         elif step_number == 2:  # for循环
-            status = f"循环 i={i_val}, 范围[{start}, {len(nums)})"
+            status = f"i = {i_val} in [{start},{len(nums)})"
             step_result = None
         elif step_number == 3:  # 交换前
-            status = f"交换 nums[{start}]={nums[start]} 和 nums[{i_val}]={nums[i_val] if i_val is not None and i_val < len(nums) else 'N/A'}"
+            if i_val is not None and start < len(nums) and i_val < len(nums):
+                status = f"nums[{start}], nums[{i_val}] -> nums[{i_val}], nums[{start}]  ({nums[start]} ↔ {nums[i_val]})"
+            else:
+                status = f"交换 nums[{start}], nums[{i_val}]"
             step_result = f"nums = {nums}"
         elif step_number == 4:  # 递归调用
-            status = f"递归调用 start={start+1}"
+            next_start = start + 1
+            status = f"permute_helper({nums}, {next_start}, {len(result)}个结果)"
             step_result = None
         elif step_number == 5:  # 交换后（回溯）
-            status = f"回溯交换 nums[{start}] 和 nums[{i_val}]"
+            if i_val is not None and start < len(nums) and i_val < len(nums):
+                status = f"回溯: nums[{start}], nums[{i_val}] -> nums[{i_val}], nums[{start}]  ({nums[start]} ↔ {nums[i_val]})"
+            else:
+                status = f"回溯交换 nums[{start}], nums[{i_val}]"
             step_result = f"nums = {nums}"
         else:
             status = "未知步骤"
@@ -376,12 +386,12 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
         
         self.steps.append(step)
     
-    def trace_permutation_return(self, local_vars: Dict[str, Any]):
-        """追踪排列函数的返回阶段，显示nums状态"""
+    def trace_permutation_return(self, return_value: Any, local_vars: Dict[str, Any]) -> Any:
+        """追踪排列函数返回值，显示nums和result状态"""
         if not self.call_stack:
-            return
+            return return_value
             
-        current_call = self.call_stack[-1]
+        current_call = self.call_stack.pop()  # 弹出当前调用
         depth = current_call['depth']
         call_id = current_call['call_id']
         
@@ -393,12 +403,12 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
         # 构造函数调用显示
         function_call = f"{self.function_name}({nums}, {start}, {len(result)}个结果)"
         
-        # 显示返回时的nums状态
-        status = f"返回 nums = {nums}"
-        step_result = f"当前排列状态: {nums}"
+        # 显示返回时的nums和result状态
+        status = f"nums = {nums}, result = {result}"
+        step_result = return_value
             
         step = ExecutionStep(
-            step_number=6,  # 用步骤6表示返回阶段
+            step_number=7,  # 用步骤7表示返回阶段
             function_call=function_call,
             args=[nums, start, result],
             depth=depth,
@@ -409,6 +419,9 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
         )
         
         self.steps.append(step)
+        
+        # 返回原始结果
+        return return_value
 
 
 def test_tracer():

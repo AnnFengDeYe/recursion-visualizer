@@ -50,8 +50,7 @@ const FUNCTION_TEMPLATES = {
       2: "for i in range(start, len(nums)):",
       3: "nums[start], nums[i] = nums[i], nums[start]",
       4: "permute_helper(nums, start + 1, result)",
-      5: "nums[start], nums[i] = nums[i], nums[start]",
-      6: "return - 显示nums状态"
+      5: "nums[start], nums[i] = nums[i], nums[start]"
     }
   }
 };
