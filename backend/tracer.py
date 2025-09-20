@@ -256,6 +256,49 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
     def __init__(self, step_annotations: Dict[int, str], function_name: Optional[str] = None):
         super().__init__(step_annotations, function_name)
         self.nums_states = []  # 记录nums数组的状态变化
+    
+    def execute_and_trace(self, code: str, function_name: str, args: List[Any]) -> Dict[str, Any]:
+        """排列函数的专用执行和追踪方法"""
+        try:
+            self.function_name = function_name
+            self.steps = []
+            self.call_counter = 0
+            self.call_stack = []
+            
+            # 提取参数名
+            self._extract_param_names(code)
+            
+            # 创建全局环境
+            global_env = {'_tracer': self}
+            
+            # 添加instrumented代码
+            instrumented_code = self._instrument_function(code)
+            
+            # 执行代码
+            exec(instrumented_code, global_env)
+            
+            # 调用函数
+            if function_name in global_env:
+                function = global_env[function_name]
+                # 排列函数没有返回值，直接调用
+                function(*args)
+                final_result = args[2] if len(args) > 2 else []  # result参数
+            else:
+                raise ValueError(f"Function {function_name} not found")
+            
+            return {
+                "steps": [asdict(step) for step in self.steps],
+                "final_result": final_result,
+                "success": True
+            }
+            
+        except Exception as e:
+            return {
+                "steps": [asdict(step) for step in self.steps],
+                "final_result": None,
+                "success": False,
+                "error": str(e)
+            }
         
     def _instrument_function(self, code: str) -> str:
         """为排列函数添加追踪逻辑"""
@@ -401,14 +444,14 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
         result = local_vars.get('result', [])
         
         # 构造函数调用显示
-        function_call = f"{self.function_name}({nums}, {start}, {len(result)}个结果)"
+        function_call = f"{self.function_name}({nums}, {start})"
         
-        # 显示返回时的nums和result状态
+        # 显示返回时的nums和result状态，使用完整的数组格式
         status = f"nums = {nums}, result = {result}"
-        step_result = return_value
+        step_result = None  # 返回值为None，因为排列函数没有返回值
             
         step = ExecutionStep(
-            step_number=7,  # 用步骤7表示返回阶段
+            step_number=2,  # 使用步骤2表示返回阶段，保持与其他函数一致
             function_call=function_call,
             args=[nums, start, result],
             depth=depth,
