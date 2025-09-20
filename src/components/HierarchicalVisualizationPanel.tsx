@@ -110,95 +110,206 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
       <div className="bg-gray-50 rounded-lg p-6">
         <h3 className="text-lg font-semibold mb-4">递归执行过程（缩进编号法）</h3>
         
-        {/* 表头 */}
-        <div className="grid gap-4 mb-4 pb-2 border-b border-gray-300 font-semibold text-gray-700" style={{
-          gridTemplateColumns: `80px 200px repeat(${Math.max(...data.steps.map(s => s.step_number))}, 1fr)`
-        }}>
-          <div className="text-center">层级</div>
-          <div>函数调用</div>
-          {Array.from({length: Math.max(...data.steps.map(s => s.step_number))}, (_, i) => (
-            <div key={i} className="text-center">步骤{i + 1}</div>
-          ))}
-        </div>
-
-        {/* 按执行顺序显示所有调用 */}
-        <div className="space-y-1">
-          {sortedCallGroups.map(group => {
-            const maxSteps = Math.max(...data.steps.map(s => s.step_number));
-            const stepsByNumber: { [key: number]: ExecutionStep[] } = {};
-            
-            // 按步骤编号分组该函数的所有步骤
-            [...group.step2_entries, ...group.step2_returns].forEach(step => {
-              if (!stepsByNumber[step.step_number]) {
-                stepsByNumber[step.step_number] = [];
-              }
-              stepsByNumber[step.step_number].push(step);
-            });
-            if (group.step1) {
-              stepsByNumber[1] = [group.step1];
-            }
-            
+        {(() => {
+          const maxSteps = Math.max(...data.steps.map(s => s.step_number));
+          const isPermutationFunction = maxSteps > 2; // 排列函数有5个步骤
+          
+          if (isPermutationFunction) {
+            // 排列函数专用布局 - 更宽的列和更大的间距
             return (
-              <div 
-                key={group.call_id} 
-                className="grid gap-4 py-2 px-3 hover:bg-gray-100 rounded border-l-4 border-transparent hover:border-blue-300"
-                style={{
-                  gridTemplateColumns: `80px 200px repeat(${maxSteps}, 1fr)`,
-                  backgroundColor: group.depth > 0 ? `rgba(59, 130, 246, ${0.05 * group.depth})` : 'transparent'
-                }}
-              >
-                {/* 层级标识 */}
-                <div className="text-center flex items-center justify-center">
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                    group.depth === 0 ? 'bg-purple-100 text-purple-800' :
-                    group.depth === 1 ? 'bg-blue-100 text-blue-800' :
-                    group.depth === 2 ? 'bg-green-100 text-green-800' :
-                    'bg-orange-100 text-orange-800'
-                  }`}>
-                    L{group.depth}
-                  </span>
-                </div>
-                
-                {/* 函数调用 */}
-                <div className="font-mono text-sm font-semibold flex items-center">
-                  {group.function_call}
+              <div className="overflow-x-auto">
+                {/* 表头 */}
+                <div className="grid gap-6 mb-6 pb-3 border-b border-gray-300 font-semibold text-gray-700" style={{
+                  gridTemplateColumns: `100px 300px repeat(${maxSteps}, minmax(200px, 1fr))`,
+                  minWidth: `${600 + maxSteps * 200}px`
+                }}>
+                  <div className="text-center">层级</div>
+                  <div>函数调用</div>
+                  {Array.from({length: maxSteps}, (_, i) => (
+                    <div key={i} className="text-center font-medium">步骤{i + 1}</div>
+                  ))}
                 </div>
 
-                {/* 动态步骤列 */}
-                {Array.from({length: maxSteps}, (_, i) => {
-                  const stepNum = i + 1;
-                  const stepsForThisNumber = stepsByNumber[stepNum] || [];
-                  
-                  return (
-                    <div key={stepNum} className="text-center flex items-center justify-center">
-                      {stepNum === 1 ? (
-                        // 步骤1：显示条件判断结果
-                        stepsForThisNumber.length > 0 && (
-                          <span className="text-xl">
-                            {stepsForThisNumber[0].status === '✅' ? '✅' : 
-                             stepsForThisNumber[0].status === '❌' ? '❌' : ''}
+                {/* 排列函数行显示 */}
+                <div className="space-y-3">
+                  {sortedCallGroups.map(group => {
+                    const stepsByNumber: { [key: number]: ExecutionStep[] } = {};
+                    
+                    // 按步骤编号分组该函数的所有步骤
+                    [...group.step2_entries, ...group.step2_returns].forEach(step => {
+                      if (!stepsByNumber[step.step_number]) {
+                        stepsByNumber[step.step_number] = [];
+                      }
+                      stepsByNumber[step.step_number].push(step);
+                    });
+                    if (group.step1) {
+                      stepsByNumber[1] = [group.step1];
+                    }
+                    
+                    return (
+                      <div 
+                        key={group.call_id} 
+                        className="grid gap-6 py-4 px-4 hover:bg-gray-100 rounded-lg border-l-4 border-transparent hover:border-blue-300 transition-colors"
+                        style={{
+                          gridTemplateColumns: `100px 300px repeat(${maxSteps}, minmax(200px, 1fr))`,
+                          minWidth: `${600 + maxSteps * 200}px`,
+                          backgroundColor: group.depth > 0 ? `rgba(59, 130, 246, ${0.08 * group.depth})` : 'transparent'
+                        }}
+                      >
+                        {/* 层级标识 */}
+                        <div className="text-center flex items-center justify-center">
+                          <span className={`px-3 py-2 rounded-full text-sm font-semibold ${
+                            group.depth === 0 ? 'bg-purple-100 text-purple-800' :
+                            group.depth === 1 ? 'bg-blue-100 text-blue-800' :
+                            group.depth === 2 ? 'bg-green-100 text-green-800' :
+                            'bg-orange-100 text-orange-800'
+                          }`}>
+                            L{group.depth}
                           </span>
-                        )
-                      ) : (
-                        // 其他步骤：显示递归调用和结果
-                        <div className="flex flex-col items-center justify-center gap-1 min-h-[2rem]">
-                          {stepsForThisNumber.map((step, idx) => (
-                            <div key={idx} className={`px-3 py-1 rounded text-xs font-mono whitespace-nowrap ${
-                              step.phase === 'entry' ? 'bg-blue-50 border border-blue-200 text-blue-700' :
-                              'bg-green-50 border border-green-200 text-green-700'
-                            }`}>
-                              {step.status}
-                            </div>
-                          ))}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+                        
+                        {/* 函数调用 */}
+                        <div className="font-mono text-sm font-semibold flex items-center break-all">
+                          {group.function_call}
+                        </div>
+
+                        {/* 动态步骤列 - 排列函数专用样式 */}
+                        {Array.from({length: maxSteps}, (_, i) => {
+                          const stepNum = i + 1;
+                          const stepsForThisNumber = stepsByNumber[stepNum] || [];
+                          
+                          return (
+                            <div key={stepNum} className="flex flex-col items-center justify-center min-h-[3rem] p-2 rounded-lg bg-white border border-gray-200">
+                              {stepNum === 1 ? (
+                                // 步骤1：显示条件判断结果
+                                stepsForThisNumber.length > 0 && (
+                                  <span className="text-2xl">
+                                    {stepsForThisNumber[0].status === '✅' ? '✅' : 
+                                     stepsForThisNumber[0].status === '❌' ? '❌' : ''}
+                                  </span>
+                                )
+                              ) : (
+                                // 其他步骤：显示递归调用和结果
+                                <div className="flex flex-col items-center justify-center gap-2 w-full">
+                                  {stepsForThisNumber.map((step, idx) => (
+                                    <div key={idx} className={`px-2 py-1 rounded text-xs font-mono text-center w-full break-words ${
+                                      step.phase === 'entry' ? 'bg-blue-50 border border-blue-200 text-blue-700' :
+                                      'bg-green-50 border border-green-200 text-green-700'
+                                    }`} style={{
+                                      lineHeight: '1.2',
+                                      wordBreak: 'break-word',
+                                      hyphens: 'auto'
+                                    }}>
+                                      {step.status}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             );
-          })}
-        </div>
+          } else {
+            // 阶乘和fibonacci函数的原有布局
+            return (
+              <>
+                {/* 表头 */}
+                <div className="grid gap-4 mb-4 pb-2 border-b border-gray-300 font-semibold text-gray-700" style={{
+                  gridTemplateColumns: `80px 200px repeat(${maxSteps}, 1fr)`
+                }}>
+                  <div className="text-center">层级</div>
+                  <div>函数调用</div>
+                  {Array.from({length: maxSteps}, (_, i) => (
+                    <div key={i} className="text-center">步骤{i + 1}</div>
+                  ))}
+                </div>
+
+                {/* 按执行顺序显示所有调用 */}
+                <div className="space-y-1">
+                  {sortedCallGroups.map(group => {
+                    const stepsByNumber: { [key: number]: ExecutionStep[] } = {};
+                    
+                    // 按步骤编号分组该函数的所有步骤
+                    [...group.step2_entries, ...group.step2_returns].forEach(step => {
+                      if (!stepsByNumber[step.step_number]) {
+                        stepsByNumber[step.step_number] = [];
+                      }
+                      stepsByNumber[step.step_number].push(step);
+                    });
+                    if (group.step1) {
+                      stepsByNumber[1] = [group.step1];
+                    }
+                    
+                    return (
+                      <div 
+                        key={group.call_id} 
+                        className="grid gap-4 py-2 px-3 hover:bg-gray-100 rounded border-l-4 border-transparent hover:border-blue-300"
+                        style={{
+                          gridTemplateColumns: `80px 200px repeat(${maxSteps}, 1fr)`,
+                          backgroundColor: group.depth > 0 ? `rgba(59, 130, 246, ${0.05 * group.depth})` : 'transparent'
+                        }}
+                      >
+                        {/* 层级标识 */}
+                        <div className="text-center flex items-center justify-center">
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                            group.depth === 0 ? 'bg-purple-100 text-purple-800' :
+                            group.depth === 1 ? 'bg-blue-100 text-blue-800' :
+                            group.depth === 2 ? 'bg-green-100 text-green-800' :
+                            'bg-orange-100 text-orange-800'
+                          }`}>
+                            L{group.depth}
+                          </span>
+                        </div>
+                        
+                        {/* 函数调用 */}
+                        <div className="font-mono text-sm font-semibold flex items-center">
+                          {group.function_call}
+                        </div>
+
+                        {/* 动态步骤列 */}
+                        {Array.from({length: maxSteps}, (_, i) => {
+                          const stepNum = i + 1;
+                          const stepsForThisNumber = stepsByNumber[stepNum] || [];
+                          
+                          return (
+                            <div key={stepNum} className="text-center flex items-center justify-center">
+                              {stepNum === 1 ? (
+                                // 步骤1：显示条件判断结果
+                                stepsForThisNumber.length > 0 && (
+                                  <span className="text-xl">
+                                    {stepsForThisNumber[0].status === '✅' ? '✅' : 
+                                     stepsForThisNumber[0].status === '❌' ? '❌' : ''}
+                                  </span>
+                                )
+                              ) : (
+                                // 其他步骤：显示递归调用和结果
+                                <div className="flex flex-col items-center justify-center gap-1 min-h-[2rem]">
+                                  {stepsForThisNumber.map((step, idx) => (
+                                    <div key={idx} className={`px-3 py-1 rounded text-xs font-mono whitespace-nowrap ${
+                                      step.phase === 'entry' ? 'bg-blue-50 border border-blue-200 text-blue-700' :
+                                      'bg-green-50 border border-green-200 text-green-700'
+                                    }`}>
+                                      {step.status}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            );
+          }
+        })()}
 
         {/* 图例 */}
         <div className="mt-6 pt-4 border-t border-gray-300">
