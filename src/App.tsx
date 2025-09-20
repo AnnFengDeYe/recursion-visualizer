@@ -5,19 +5,42 @@ import HierarchicalVisualizationPanel from './components/HierarchicalVisualizati
 import type { ExecutionStep } from './types.js';
 import './App.css';
 
-function App() {
-  const [code, setCode] = useState<string>(`def fibonacci(n):
+// 预设函数模板
+const FUNCTION_TEMPLATES = {
+  fibonacci: {
+    code: `def fibonacci(n):
     if n <= 1:
         return n
     else:
-        return fibonacci(n - 1) + fibonacci(n - 2)`);
-  
+        return fibonacci(n - 1) + fibonacci(n - 2)`,
+    functionName: 'fibonacci',
+    args: '[3]',
+    stepAnnotations: {
+      1: "if n <= 1:",
+      2: "return fibonacci(n - 1) + fibonacci(n - 2)"
+    }
+  },
+  factorial: {
+    code: `def factorial(n):
+    if n <= 1:
+        return 1
+    else:
+        return n * factorial(n - 1)`,
+    functionName: 'factorial',
+    args: '[4]',
+    stepAnnotations: {
+      1: "if n <= 1:",
+      2: "return n * factorial(n - 1)"
+    }
+  }
+};
+
+function App() {
+  const [selectedTemplate, setSelectedTemplate] = useState<'fibonacci' | 'factorial'>('fibonacci');
+  const [code, setCode] = useState<string>(FUNCTION_TEMPLATES.fibonacci.code);
   const [functionName, setFunctionName] = useState<string>('fibonacci');
   const [args, setArgs] = useState<string>('[3]');
-  const [stepAnnotations, setStepAnnotations] = useState<Record<number, string>>({
-    1: "if n <= 1:",
-    2: "return fibonacci(n - 1) + fibonacci(n - 2)"
-  });
+  const [stepAnnotations, setStepAnnotations] = useState<Record<number, string>>(FUNCTION_TEMPLATES.fibonacci.stepAnnotations);
   const [visualizationData, setVisualizationData] = useState<{
     steps: ExecutionStep[];
     finalResult: any;
@@ -25,6 +48,16 @@ function App() {
     error?: string;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // 处理模板切换
+  const handleTemplateChange = (template: 'fibonacci' | 'factorial') => {
+    setSelectedTemplate(template);
+    const templateData = FUNCTION_TEMPLATES[template];
+    setCode(templateData.code);
+    setFunctionName(templateData.functionName);
+    setArgs(templateData.args);
+    setStepAnnotations(templateData.stepAnnotations);
+  };
 
   const handleVisualize = async () => {
     setIsLoading(true);
@@ -75,7 +108,31 @@ function App() {
           {/* 左侧：代码编辑和设置 */}
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h2 className="text-xl font-semibold mb-4">代码编辑器</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">代码编辑器</h2>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleTemplateChange('fibonacci')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      selectedTemplate === 'fibonacci'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Fibonacci函数
+                  </button>
+                  <button
+                    onClick={() => handleTemplateChange('factorial')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      selectedTemplate === 'factorial'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    阶乘函数
+                  </button>
+                </div>
+              </div>
               <CodeEditor 
                 value={code} 
                 onChange={setCode}
