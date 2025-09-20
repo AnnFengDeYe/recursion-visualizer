@@ -32,11 +32,31 @@ const FUNCTION_TEMPLATES = {
       1: "if n <= 1:",
       2: "return fibonacci(n - 1) + fibonacci(n - 2)"
     }
+  },
+  permutation: {
+    code: `def permute_helper(nums, start, result):
+    if start == len(nums):
+        result.append(nums[:])
+        return
+    
+    for i in range(start, len(nums)):
+        nums[start], nums[i] = nums[i], nums[start]
+        permute_helper(nums, start + 1, result)
+        nums[start], nums[i] = nums[i], nums[start]`,
+    functionName: 'permute_helper',
+    args: '[[1, 2, 3], 0, []]',
+    stepAnnotations: {
+      1: "if start == len(nums):",
+      2: "for i in range(start, len(nums)):",
+      3: "nums[start], nums[i] = nums[i], nums[start]",
+      4: "permute_helper(nums, start + 1, result)",
+      5: "nums[start], nums[i] = nums[i], nums[start]"
+    }
   }
 };
 
 function App() {
-  const [selectedTemplate, setSelectedTemplate] = useState<'factorial' | 'fibonacci'>('factorial');
+  const [selectedTemplate, setSelectedTemplate] = useState<'factorial' | 'fibonacci' | 'permutation'>('factorial');
   const [code, setCode] = useState<string>(FUNCTION_TEMPLATES.factorial.code);
   const [functionName, setFunctionName] = useState<string>('factorial');
   const [args, setArgs] = useState<string>('[4]');
@@ -50,7 +70,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
 
   // 处理模板切换
-  const handleTemplateChange = (template: 'factorial' | 'fibonacci') => {
+  const handleTemplateChange = (template: 'factorial' | 'fibonacci' | 'permutation') => {
     setSelectedTemplate(template);
     const templateData = FUNCTION_TEMPLATES[template];
     setCode(templateData.code);
@@ -130,6 +150,16 @@ function App() {
                     }`}
                   >
                     Fibonacci函数
+                  </button>
+                  <button
+                    onClick={() => handleTemplateChange('permutation')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      selectedTemplate === 'permutation'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    排列生成
                   </button>
                 </div>
               </div>

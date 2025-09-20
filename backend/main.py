@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
-from tracer import HierarchicalRecursionTracer
+from tracer import HierarchicalRecursionTracer, PermutationRecursionTracer
 
 
 app = FastAPI(title="递归算法可视化API", version="1.0.0")
@@ -68,8 +68,13 @@ async def analyze_code(code_input: CodeInput) -> VisualizationResult:
     分析Python代码并生成递归调用的可视化数据
     """
     try:
-        # 创建简化版追踪器
-        tracer = HierarchicalRecursionTracer(code_input.step_annotations)
+        # 判断是否是排列函数
+        if code_input.function_name == 'permute_helper':
+            # 使用专门的排列追踪器
+            tracer = PermutationRecursionTracer(code_input.step_annotations)
+        else:
+            # 使用通用递归追踪器
+            tracer = HierarchicalRecursionTracer(code_input.step_annotations)
         
         # 执行代码并追踪
         result = tracer.execute_and_trace(
