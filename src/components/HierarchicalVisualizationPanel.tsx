@@ -115,10 +115,14 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
           const isPermutationFunction = maxSteps > 2; // 排列函数有5个步骤
           
           if (isPermutationFunction) {
-            // 排列函数专用布局 - 更宽的列和更大的间距
+            // 排列函数专用布局 - 自适应容器包裹
             return (
-              <div className="overflow-x-auto">
-                {/* 表头 */}
+              <div className="w-full">
+                {/* 排列函数专用容器 - 美观包裹 */}
+                <div className="overflow-x-auto bg-white rounded-lg border border-gray-200 shadow-sm">
+                  <div className="p-4" style={{
+                    minWidth: `${600 + maxSteps * 200}px`
+                  }}>
                 <div className="grid gap-6 mb-6 pb-3 border-b border-gray-300 font-semibold text-gray-700" style={{
                   gridTemplateColumns: `100px 300px repeat(${maxSteps}, minmax(200px, 1fr))`,
                   minWidth: `${600 + maxSteps * 200}px`
@@ -211,6 +215,8 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
                       </div>
                     );
                   })}
+                </div>
+                  </div>
                 </div>
               </div>
             );
