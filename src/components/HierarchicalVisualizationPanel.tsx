@@ -115,18 +115,17 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
           const isPermutationFunction = maxSteps > 2; // 排列函数有5个步骤
           
           if (isPermutationFunction) {
-            // 排列函数专用布局 - 真正的自适应容器
+            // 排列函数专用布局 - 紧凑且自适应的可视化
             return (
               <div className="w-full overflow-hidden">
-                {/* 排列函数专用容器 - 自适应宽度 */}
+                {/* 排列函数紧凑容器 */}
                 <div className="overflow-x-auto">
-                  <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4" style={{
-                    minWidth: `${600 + maxSteps * 200}px`,
-                    width: 'max-content'
+                  <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-3 mx-auto" style={{
+                    width: 'fit-content',
+                    maxWidth: '100%'
                   }}>
-                <div className="grid gap-6 mb-6 pb-3 border-b border-gray-300 font-semibold text-gray-700" style={{
-                  gridTemplateColumns: `100px 300px repeat(${maxSteps}, minmax(200px, 1fr))`,
-                  minWidth: `${600 + maxSteps * 200}px`
+                <div className="grid gap-3 mb-4 pb-2 border-b border-gray-300 font-semibold text-gray-700 text-sm" style={{
+                  gridTemplateColumns: `70px 180px repeat(${maxSteps}, minmax(120px, 1fr))`
                 }}>
                   <div className="text-center">层级</div>
                   <div>函数调用</div>
@@ -135,8 +134,8 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
                   ))}
                 </div>
 
-                {/* 排列函数行显示 */}
-                <div className="space-y-3">
+                {/* 排列函数行显示 - 紧凑布局 */}
+                <div className="space-y-2">
                   {sortedCallGroups.map(group => {
                     const stepsByNumber: { [key: number]: ExecutionStep[] } = {};
                     
@@ -153,16 +152,15 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
                     return (
                       <div 
                         key={group.call_id} 
-                        className="grid gap-6 py-4 px-4 hover:bg-gray-100 rounded-lg border-l-4 border-transparent hover:border-blue-300 transition-colors"
+                        className="grid gap-3 py-2 px-3 hover:bg-gray-50 rounded border border-gray-100 transition-colors"
                         style={{
-                          gridTemplateColumns: `100px 300px repeat(${maxSteps}, minmax(200px, 1fr))`,
-                          minWidth: `${600 + maxSteps * 200}px`,
-                          backgroundColor: group.depth > 0 ? `rgba(59, 130, 246, ${0.08 * group.depth})` : 'transparent'
+                          gridTemplateColumns: `70px 180px repeat(${maxSteps}, minmax(120px, 1fr))`,
+                          backgroundColor: group.depth > 0 ? `rgba(59, 130, 246, ${0.04 * group.depth})` : 'transparent'
                         }}
                       >
-                        {/* 层级标识 */}
+                        {/* 层级标识 - 紧凑版 */}
                         <div className="text-center flex items-center justify-center">
-                          <span className={`px-3 py-2 rounded-full text-sm font-semibold ${
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                             group.depth === 0 ? 'bg-purple-100 text-purple-800' :
                             group.depth === 1 ? 'bg-blue-100 text-blue-800' :
                             group.depth === 2 ? 'bg-green-100 text-green-800' :
@@ -172,8 +170,8 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
                           </span>
                         </div>
                         
-                        {/* 函数调用 */}
-                        <div className="font-mono text-sm font-semibold flex items-center break-all">
+                        {/* 函数调用 - 紧凑版 */}
+                        <div className="font-mono text-xs font-semibold flex items-center break-all leading-tight">
                           {group.function_call}
                         </div>
 
@@ -183,26 +181,25 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
                           const stepsForThisNumber = stepsByNumber[stepNum] || [];
                           
                           return (
-                            <div key={stepNum} className="flex flex-col items-center justify-center min-h-[3rem] p-2 rounded-lg bg-white border border-gray-200">
+                            <div key={stepNum} className="flex flex-col items-center justify-center min-h-[2.5rem] p-1 rounded bg-gray-50 border border-gray-200">
                               {stepNum === 1 ? (
                                 // 步骤1：显示条件判断结果
                                 stepsForThisNumber.length > 0 && (
-                                  <span className="text-2xl">
+                                  <span className="text-lg">
                                     {stepsForThisNumber[0].status === '✅' ? '✅' : 
                                      stepsForThisNumber[0].status === '❌' ? '❌' : ''}
                                   </span>
                                 )
                               ) : (
                                 // 其他步骤：显示递归调用和结果
-                                <div className="flex flex-col items-center justify-center gap-2 w-full">
+                                <div className="flex flex-col items-center justify-center gap-1 w-full">
                                   {stepsForThisNumber.map((step, idx) => (
-                                    <div key={idx} className={`px-2 py-1 rounded text-xs font-mono text-center w-full break-words ${
+                                    <div key={idx} className={`px-1 py-0.5 rounded text-xs font-mono text-center w-full break-words ${
                                       step.phase === 'entry' ? 'bg-blue-50 border border-blue-200 text-blue-700' :
                                       'bg-green-50 border border-green-200 text-green-700'
                                     }`} style={{
-                                      lineHeight: '1.2',
-                                      wordBreak: 'break-word',
-                                      hyphens: 'auto'
+                                      lineHeight: '1.1',
+                                      fontSize: '10px'
                                     }}>
                                       {step.status}
                                     </div>
