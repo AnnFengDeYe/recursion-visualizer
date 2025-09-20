@@ -7,19 +7,6 @@ import './App.css';
 
 // 预设函数模板
 const FUNCTION_TEMPLATES = {
-  fibonacci: {
-    code: `def fibonacci(n):
-    if n <= 1:
-        return n
-    else:
-        return fibonacci(n - 1) + fibonacci(n - 2)`,
-    functionName: 'fibonacci',
-    args: '[3]',
-    stepAnnotations: {
-      1: "if n <= 1:",
-      2: "return fibonacci(n - 1) + fibonacci(n - 2)"
-    }
-  },
   factorial: {
     code: `def factorial(n):
     if n <= 1:
@@ -32,15 +19,28 @@ const FUNCTION_TEMPLATES = {
       1: "if n <= 1:",
       2: "return n * factorial(n - 1)"
     }
+  },
+  fibonacci: {
+    code: `def fibonacci(n):
+    if n <= 1:
+        return n
+    else:
+        return fibonacci(n - 1) + fibonacci(n - 2)`,
+    functionName: 'fibonacci',
+    args: '[3]',
+    stepAnnotations: {
+      1: "if n <= 1:",
+      2: "return fibonacci(n - 1) + fibonacci(n - 2)"
+    }
   }
 };
 
 function App() {
-  const [selectedTemplate, setSelectedTemplate] = useState<'fibonacci' | 'factorial'>('fibonacci');
-  const [code, setCode] = useState<string>(FUNCTION_TEMPLATES.fibonacci.code);
-  const [functionName, setFunctionName] = useState<string>('fibonacci');
-  const [args, setArgs] = useState<string>('[3]');
-  const [stepAnnotations, setStepAnnotations] = useState<Record<number, string>>(FUNCTION_TEMPLATES.fibonacci.stepAnnotations);
+  const [selectedTemplate, setSelectedTemplate] = useState<'factorial' | 'fibonacci'>('factorial');
+  const [code, setCode] = useState<string>(FUNCTION_TEMPLATES.factorial.code);
+  const [functionName, setFunctionName] = useState<string>('factorial');
+  const [args, setArgs] = useState<string>('[4]');
+  const [stepAnnotations, setStepAnnotations] = useState<Record<number, string>>(FUNCTION_TEMPLATES.factorial.stepAnnotations);
   const [visualizationData, setVisualizationData] = useState<{
     steps: ExecutionStep[];
     finalResult: any;
@@ -50,7 +50,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
 
   // 处理模板切换
-  const handleTemplateChange = (template: 'fibonacci' | 'factorial') => {
+  const handleTemplateChange = (template: 'factorial' | 'fibonacci') => {
     setSelectedTemplate(template);
     const templateData = FUNCTION_TEMPLATES[template];
     setCode(templateData.code);
@@ -112,16 +112,6 @@ function App() {
                 <h2 className="text-xl font-semibold">代码编辑器</h2>
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => handleTemplateChange('fibonacci')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                      selectedTemplate === 'fibonacci'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    Fibonacci函数
-                  </button>
-                  <button
                     onClick={() => handleTemplateChange('factorial')}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                       selectedTemplate === 'factorial'
@@ -130,6 +120,16 @@ function App() {
                     }`}
                   >
                     阶乘函数
+                  </button>
+                  <button
+                    onClick={() => handleTemplateChange('fibonacci')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      selectedTemplate === 'fibonacci'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Fibonacci函数
                   </button>
                 </div>
               </div>
