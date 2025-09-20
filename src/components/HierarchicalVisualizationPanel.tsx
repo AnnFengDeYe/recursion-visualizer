@@ -115,13 +115,14 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
           const isPermutationFunction = maxSteps > 2; // 排列函数有5个步骤
           
           if (isPermutationFunction) {
-            // 排列函数专用布局 - 自适应容器包裹
+            // 排列函数专用布局 - 真正的自适应容器
             return (
-              <div className="w-full">
-                {/* 排列函数专用容器 - 美观包裹 */}
-                <div className="overflow-x-auto bg-white rounded-lg border border-gray-200 shadow-sm">
-                  <div className="p-4" style={{
-                    minWidth: `${600 + maxSteps * 200}px`
+              <div className="w-full overflow-hidden">
+                {/* 排列函数专用容器 - 自适应宽度 */}
+                <div className="overflow-x-auto">
+                  <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4" style={{
+                    minWidth: `${600 + maxSteps * 200}px`,
+                    width: 'max-content'
                   }}>
                 <div className="grid gap-6 mb-6 pb-3 border-b border-gray-300 font-semibold text-gray-700" style={{
                   gridTemplateColumns: `100px 300px repeat(${maxSteps}, minmax(200px, 1fr))`,
@@ -139,16 +140,15 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
                   {sortedCallGroups.map(group => {
                     const stepsByNumber: { [key: number]: ExecutionStep[] } = {};
                     
-                    // 按步骤编号分组该函数的所有步骤
-                    [...group.step2_entries, ...group.step2_returns].forEach(step => {
-                      if (!stepsByNumber[step.step_number]) {
-                        stepsByNumber[step.step_number] = [];
+                    // 按步骤编号分组该函数的所有步骤 - 修复排列函数步骤3-5显示
+                    data.steps.forEach(step => {
+                      if (step.call_id === group.call_id) {
+                        if (!stepsByNumber[step.step_number]) {
+                          stepsByNumber[step.step_number] = [];
+                        }
+                        stepsByNumber[step.step_number].push(step);
                       }
-                      stepsByNumber[step.step_number].push(step);
                     });
-                    if (group.step1) {
-                      stepsByNumber[1] = [group.step1];
-                    }
                     
                     return (
                       <div 
