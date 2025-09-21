@@ -44,7 +44,7 @@ const FUNCTION_TEMPLATES = {
         permute_helper(nums, start + 1, result)
         nums[start], nums[i] = nums[i], nums[start]`,
     functionName: 'permute_helper',
-    args: '[[1, 2, 3], 0, []]',
+    args: '[[1, 2], 0, []]',
     stepAnnotations: {
       1: "if start == len(nums):",
       2: "for i in range(start, len(nums)):",
