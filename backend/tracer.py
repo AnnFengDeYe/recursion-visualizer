@@ -274,6 +274,8 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
     def __init__(self, step_annotations: Dict[int, str], function_name: Optional[str] = None):
         super().__init__(step_annotations, function_name)
         self.nums_states = []  # 记录nums数组的状态变化
+        self.swap_context = {}  # 记录每个调用的交换上下文
+        self.swap_counter = 0  # 全局交换计数器
     
     def execute_and_trace(self, code: str, function_name: str, args: List[Any]) -> Dict[str, Any]:
         """排列函数的专用执行和追踪方法"""
@@ -282,6 +284,8 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
             self.steps = []
             self.call_counter = 0
             self.call_stack = []
+            self.swap_context = {}  # 清空交换上下文
+            self.swap_counter = 0  # 重置全局交换计数器
             
             # 提取参数名
             self._extract_param_names(code)
@@ -336,55 +340,76 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
         """为排列函数添加追踪逻辑"""
         lines = code.split('\n')
         modified_lines = []
+        in_function = False
         
         for i, line in enumerate(lines):
-            modified_lines.append(line)
+            stripped_line = line.strip()
             
-            # 检查是否是函数定义行
-            if line.strip().startswith(f'def {self.function_name}'):
+            # 函数定义行
+            if stripped_line.startswith(f'def {self.function_name}'):
+                modified_lines.append(line)
                 indent = len(line) - len(line.lstrip()) + 4
-                entry_trace = ' ' * indent + "_tracer.trace_function_entry(locals())"
-                modified_lines.append(entry_trace)
-                # 在函数入口处直接检查步骤1
-                step1_trace = ' ' * indent + "_tracer.trace_permutation_step(1, locals())"
-                modified_lines.append(step1_trace)
+                modified_lines.append(' ' * indent + "_tracer.trace_function_entry(locals())")
+                modified_lines.append(' ' * indent + "_tracer.trace_permutation_step(1, locals())")
+                in_function = True
+                continue
             
-            # 步骤2: for循环开始
-            elif "for i in range(start, len(nums))" in line:
+            # 如果不在函数内，直接添加行
+            if not in_function:
+                modified_lines.append(line)
+                continue
+            
+            # 检查是否退出函数
+            if stripped_line and not line.startswith(' ') and not line.startswith('\t'):
+                in_function = False
+                modified_lines.append(line)
+                continue
+            
+            # 处理函数内的各种语句
+            if "if start == len(nums):" in stripped_line:
+                # if条件语句
+                modified_lines.append(line)
+                
+            elif "result.append(nums[:])" in stripped_line:
+                # 基本情况的result.append
+                modified_lines.append(line)
+                
+            elif "return" in stripped_line and "result.append" not in stripped_line:
+                # return语句
+                modified_lines.append(line)
+                
+            elif "for i in range(start, len(nums)):" in stripped_line:
+                # for循环开始
+                modified_lines.append(line)
+                # 在for循环体内第一行添加步骤2追踪
                 if i + 1 < len(lines):
                     next_line = lines[i + 1]
                     indent = len(next_line) - len(next_line.lstrip())
-                    trace_call = f' ' * indent + "_tracer.trace_permutation_step(2, locals())"
-                    modified_lines.append(trace_call)
-            
-            # 步骤3: 交换前
-            elif "nums[start], nums[i] = nums[i], nums[start]" in line:
-                # 检查是否是第一次出现（交换前）还是第二次（回溯）
-                is_backtrack = False
-                # 查找上一行是否有递归调用
-                for j in range(i-1, max(0, i-5), -1):
-                    if self.function_name and self.function_name in lines[j]:
-                        is_backtrack = True
-                        break
+                    modified_lines.append(' ' * indent + "_tracer.trace_permutation_step(2, locals())")
+                    
+            elif "nums[start], nums[i] = nums[i], nums[start]" in stripped_line:
+                # 交换行
+                modified_lines.append(line)
+                indent = len(line) - len(line.lstrip())
+                modified_lines.append(' ' * indent + "_tracer.trace_swap_operation(locals())")
                 
+            elif f"{self.function_name}(nums, start + 1, result)" in stripped_line:
+                # 递归调用行
                 indent = len(line) - len(line.lstrip())
-                if is_backtrack:
-                    trace_call = f' ' * indent + "_tracer.trace_permutation_step(5, locals())"
-                else:
-                    trace_call = f' ' * indent + "_tracer.trace_permutation_step(3, locals())"
-                modified_lines.insert(-1, trace_call)
-            
-            # 步骤4: 递归调用
-            elif f"{self.function_name}(nums, start + 1, result)" in line:
-                indent = len(line) - len(line.lstrip())
-                trace_call = f' ' * indent + "_tracer.trace_permutation_step(4, locals())"
-                modified_lines.insert(-1, trace_call)
-            
-            # 在return语句之前添加返回追踪
-            elif "return" in line and line.strip() == "return":
-                indent = len(line) - len(line.lstrip())
-                return_trace = f' ' * indent + "_tracer.trace_permutation_return(None, locals())"
-                modified_lines.insert(-1, return_trace)
+                # 先添加步骤4追踪
+                modified_lines.append(' ' * indent + "_tracer.trace_permutation_step(4, locals())")
+                # 然后是实际的递归调用
+                modified_lines.append(line)
+                # 在这个层级添加回归步骤
+                modified_lines.append(' ' * indent + "_tracer.trace_permutation_return(None, locals())")
+                
+            else:
+                # 其他行直接添加
+                modified_lines.append(line)
+        
+        print("=== 插桩后的代码 ===")
+        print('\n'.join(modified_lines))
+        print("=== 插桩结束 ===")
         
         return '\n'.join(modified_lines)
     
@@ -393,15 +418,30 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
         if not self.call_stack:
             return
             
-        current_call = self.call_stack[-1]
-        depth = current_call['depth']
-        call_id = current_call['call_id']
-        
-        # 获取当前函数的参数
+        # 获取当前变量值
         nums = local_vars.get('nums', [])
         start = local_vars.get('start', 0)
         result = local_vars.get('result', [])
         i_val = local_vars.get('i', None)
+        
+        # 精确匹配call_id：使用start参数和调用栈信息
+        target_call = None
+        
+        # 从调用栈中从后往前找，找到第一个start值匹配的调用
+        for call_info in reversed(self.call_stack):
+            call_args = call_info['args']
+            if len(call_args) >= 2 and call_args[1] == start:
+                target_call = call_info
+                break
+        
+        # 如果没找到匹配的，使用当前栈顶
+        if target_call:
+            current_call = target_call
+        else:
+            current_call = self.call_stack[-1]
+            
+        depth = current_call['depth']
+        call_id = current_call['call_id']
         
         # 记录nums状态
         nums_copy = nums[:] if nums else []
@@ -438,6 +478,9 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
             next_start = start + 1
             status = f"({nums}, {next_start}, {result})"
             step_result = None
+            
+            # 不在这里添加回归追踪，而是在递归调用实际完成后添加
+            
         elif step_number == 5:  # 交换后（回溯）
             if i_val is not None and start < len(nums) and i_val < len(nums):
                 status = f"{nums[start]} <-> {nums[i_val]}"
@@ -461,34 +504,105 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
         
         self.steps.append(step)
     
-    def trace_permutation_return(self, return_value: Any, local_vars: Dict[str, Any]) -> Any:
-        """追踪排列函数返回值，显示nums和result状态"""
+    def _add_return_step_after_recursive_call(self, local_vars: Dict[str, Any]):
+        """在递归调用后添加返回步骤 - 显示在发起调用的层级上"""
         if not self.call_stack:
-            return return_value
+            return
             
-        current_call = self.call_stack.pop()  # 弹出当前调用
-        depth = current_call['depth']
-        call_id = current_call['call_id']
-        
-        # 获取当前函数的参数
+        # 获取当前函数的参数（发起递归调用的层级）
         nums = local_vars.get('nums', [])
         start = local_vars.get('start', 0)
         result = local_vars.get('result', [])
         
-        # 构造函数调用显示
-        function_call = f"{self.function_name}({nums}, {start})"
+        # 找到当前层级的调用信息（发起递归调用的层级）
+        current_call = None
+        for call_info in reversed(self.call_stack):
+            call_args = call_info['args']
+            if len(call_args) >= 2 and call_args[1] == start:  # 匹配当前start参数
+                current_call = call_info
+                break
         
-        # 显示返回时的nums和result状态，使用完整的数组格式
-        status = f"nums = {nums}, result = {result}"
-        step_result = None  # 返回值为None，因为排列函数没有返回值
+        if current_call:
+            depth = current_call['depth']  # 使用发起调用的层级
+            call_id = current_call['call_id']
             
+            # 构造函数调用显示（显示被调用的函数信息）
+            function_call = f"{self.function_name}({nums}, {start + 1})"
+            
+            # 显示返回时的nums和result状态
+            status = f"nums = {nums}, result = {result}"
+            
+            step = ExecutionStep(
+                step_number=4,  # 使用步骤4表示返回阶段，因为只有步骤4是递归调用
+                function_call=function_call,
+                args=[nums, start + 1, result],
+                depth=depth,  # 重要：使用发起调用的层级
+                status=status,
+                result=None,
+                phase="return",
+                call_id=call_id
+            )
+            
+            self.steps.append(step)
+    
+    def trace_swap_operation(self, local_vars: Dict[str, Any]):
+        """动态追踪交换操作，使用全局计数器来区分步骤3和步骤5"""
+        if not self.call_stack:
+            return
+            
+        # 全局交换计数器，奇数是步骤3，偶数是步骤5
+        self.swap_counter += 1
+        
+        if self.swap_counter % 2 == 1:
+            step_number = 3  # 奇数 - 初始交换
+        else:
+            step_number = 5  # 偶数 - 回溯交换
+        
+        # 调用原有的追踪方法
+        self.trace_permutation_step(step_number, local_vars)
+    
+    def trace_permutation_return(self, return_value: Any, local_vars: Dict[str, Any]) -> Any:
+        """追踪排列函数返回值，每次递归调用都会有一个对应的回归步骤"""
+        # 获取当前函数的参数（这是发起递归调用的层级）
+        nums = local_vars.get('nums', [])
+        start = local_vars.get('start', 0)
+        result = local_vars.get('result', [])
+        
+        # 检查是否是基本情况
+        is_base_case = start == len(nums)
+        
+        # 基本情况不添加回归步骤，因为它们没有发起递归调用
+        if is_base_case:
+            return return_value
+            
+        # 非基本情况：添加回归步骤
+        # 找到当前层级的调用信息（发起递归调用的层级）
+        current_call = None
+        for call_info in reversed(self.call_stack):
+            call_args = call_info['args']
+            if len(call_args) >= 2 and call_args[1] == start:  # 匹配当前start参数
+                current_call = call_info
+                break
+        
+        if not current_call:
+            return return_value
+            
+        depth = current_call['depth']  # 使用发起调用的层级
+        call_id = current_call['call_id']
+        
+        # 构造函数调用显示（显示被调用的函数信息）
+        function_call = f"{self.function_name}({nums}, {start + 1})"
+        
+        # 显示返回时的nums和result状态
+        status = f"nums = {nums}, result = {result}"
+        
         step = ExecutionStep(
-            step_number=2,  # 使用步骤2表示返回阶段，保持与其他函数一致
+            step_number=4,  # 使用步骤4表示返回阶段，因为只有步骤4是递归调用
             function_call=function_call,
-            args=[nums, start, result],
-            depth=depth,
+            args=[nums, start + 1, result],
+            depth=depth,  # 重要：使用发起调用的层级
             status=status,
-            result=step_result,
+            result=None,
             phase="return",
             call_id=call_id
         )
