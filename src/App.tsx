@@ -63,7 +63,7 @@ function App() {
   const [stepAnnotations, setStepAnnotations] = useState<Record<number, string>>(FUNCTION_TEMPLATES.factorial.stepAnnotations);
   const [visualizationData, setVisualizationData] = useState<{
     steps: ExecutionStep[];
-    finalResult: any;
+    final_result: any;
     success: boolean;
     error?: string;
   } | null>(null);
@@ -101,7 +101,7 @@ function App() {
       console.error('可视化失败:', error);
       setVisualizationData({
         steps: [],
-        finalResult: null,
+        final_result: null,
         success: false,
         error: '连接后端服务失败，请确保后端服务正在运行'
       });
@@ -112,21 +112,27 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">
-              递归算法可视化工具
-            </h1>
-            <p className="text-gray-600">缩进编号法可视化展示</p>
-          </div>
-        </div>
-      </header>
+      <div className="w-full overflow-x-auto">
+        {/* 动态宽度容器 - 跟随内容自适应 */}
+        <div style={{
+          width: 'fit-content',
+          minWidth: '100vw'
+        }}>
+          <header className="bg-white shadow-sm border-b">
+            <div className="px-4 sm:px-6 lg:px-8">
+              <div className="flex justify-between items-center py-6">
+                <h1 className="text-3xl font-bold text-gray-900">
+                  递归算法可视化工具
+                </h1>
+                <p className="text-gray-600">缩进编号法可视化展示</p>
+              </div>
+            </div>
+          </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* 左侧：代码编辑和设置 */}
-          <div className="space-y-6">
+          <main className="px-4 sm:px-6 lg:px-8 py-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* 左侧：代码编辑和设置 */}
+              <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-sm border p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">代码编辑器</h2>
@@ -215,12 +221,18 @@ function App() {
           </div>
 
           {/* 右侧：可视化结果 */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="bg-white rounded-lg shadow-sm border p-6 w-full" style={{
+            width: 'fit-content',
+            minWidth: '100%',
+            overflowX: 'auto'
+          }}>
             <h2 className="text-xl font-semibold mb-4">可视化结果</h2>
             <HierarchicalVisualizationPanel data={visualizationData} />
           </div>
         </div>
       </main>
+        </div>
+      </div>
     </div>
   );
 }

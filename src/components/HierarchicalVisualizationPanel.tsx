@@ -94,7 +94,7 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full overflow-x-auto">
       {/* 最终结果 */}
       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
         <div className="flex items-center mb-2">
@@ -111,7 +111,11 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
       </div>
 
       {/* 递归执行过程可视化 */}
-      <div className="bg-gray-50 rounded-lg p-6 overflow-auto">
+      <div className="bg-gray-50 rounded-lg p-6" style={{
+        width: 'fit-content',
+        minWidth: '100%',
+        overflowX: 'auto'
+      }}>
         <h3 className="text-lg font-semibold mb-4">递归执行过程（缩进编号法）</h3>
         
         {(() => {
@@ -229,100 +233,105 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
           } else {
             // 阶乘和fibonacci函数的原有布局
             return (
-              <>
-                {/* 表头 */}
-                <div className="grid gap-4 mb-4 pb-2 border-b border-gray-300 font-semibold text-gray-700" style={{
-                  gridTemplateColumns: `80px 200px repeat(${maxSteps}, minmax(200px, 1fr))`
+              <div className="w-full overflow-x-auto">
+                <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-3" style={{
+                  width: 'fit-content',
+                  minWidth: '100%'
                 }}>
-                  <div className="text-center">层级</div>
-                  <div>函数调用</div>
-                  {Array.from({length: maxSteps}, (_, i) => (
-                    <div key={i} className="text-center">步骤{i + 1}</div>
-                  ))}
-                </div>
+                  {/* 表头 */}
+                  <div className="grid gap-4 mb-4 pb-2 border-b border-gray-300 font-semibold text-gray-700" style={{
+                    gridTemplateColumns: `80px 200px repeat(${maxSteps}, minmax(200px, 1fr))`
+                  }}>
+                    <div className="text-center">层级</div>
+                    <div>函数调用</div>
+                    {Array.from({length: maxSteps}, (_, i) => (
+                      <div key={i} className="text-center">步骤{i + 1}</div>
+                    ))}
+                  </div>
 
-                {/* 按执行顺序显示所有调用 */}
-                <div className="space-y-1">
-                  {sortedCallGroups.map(group => {
-                    const stepsByNumber: { [key: number]: ExecutionStep[] } = {};
-                    
-                    // 按步骤编号分组该函数的所有步骤
-                    [...group.step2_entries, ...group.step2_returns].forEach(step => {
-                      if (!stepsByNumber[step.step_number]) {
-                        stepsByNumber[step.step_number] = [];
+                  {/* 按执行顺序显示所有调用 */}
+                  <div className="space-y-1">
+                    {sortedCallGroups.map(group => {
+                      const stepsByNumber: { [key: number]: ExecutionStep[] } = {};
+                      
+                      // 按步骤编号分组该函数的所有步骤
+                      [...group.step2_entries, ...group.step2_returns].forEach(step => {
+                        if (!stepsByNumber[step.step_number]) {
+                          stepsByNumber[step.step_number] = [];
+                        }
+                        stepsByNumber[step.step_number].push(step);
+                      });
+                      if (group.step1) {
+                        stepsByNumber[1] = [group.step1];
                       }
-                      stepsByNumber[step.step_number].push(step);
-                    });
-                    if (group.step1) {
-                      stepsByNumber[1] = [group.step1];
-                    }
-                    
-                    return (
-                      <div 
-                        key={group.call_id} 
-                        className="grid gap-4 py-2 px-3 hover:bg-gray-100 rounded border-l-4 border-transparent hover:border-blue-300"
-                        style={{
-                          gridTemplateColumns: `80px 200px repeat(${maxSteps}, minmax(200px, 1fr))`,
-                          backgroundColor: group.depth > 0 ? `rgba(59, 130, 246, ${0.05 * group.depth})` : 'transparent'
-                        }}
-                      >
-                        {/* 层级标识 */}
-                        <div className="text-center flex items-center justify-center">
-                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            group.depth === 0 ? 'bg-purple-100 text-purple-800' :
-                            group.depth === 1 ? 'bg-blue-100 text-blue-800' :
-                            group.depth === 2 ? 'bg-green-100 text-green-800' :
-                            'bg-orange-100 text-orange-800'
-                          }`}>
-                            L{group.depth}
-                          </span>
-                        </div>
-                        
-                        {/* 函数调用 */}
-                        <div className="font-mono text-sm font-semibold flex items-center">
-                          {group.function_call}
-                        </div>
-
-                        {/* 动态步骤列 */}
-                        {Array.from({length: maxSteps}, (_, i) => {
-                          const stepNum = i + 1;
-                          const stepsForThisNumber = stepsByNumber[stepNum] || [];
+                      
+                      return (
+                        <div 
+                          key={group.call_id} 
+                          className="grid gap-4 py-2 px-3 hover:bg-gray-100 rounded border-l-4 border-transparent hover:border-blue-300"
+                          style={{
+                            gridTemplateColumns: `80px 200px repeat(${maxSteps}, minmax(200px, 1fr))`,
+                            backgroundColor: group.depth > 0 ? `rgba(59, 130, 246, ${0.05 * group.depth})` : 'transparent'
+                          }}
+                        >
+                          {/* 层级标识 */}
+                          <div className="text-center flex items-center justify-center">
+                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                              group.depth === 0 ? 'bg-purple-100 text-purple-800' :
+                              group.depth === 1 ? 'bg-blue-100 text-blue-800' :
+                              group.depth === 2 ? 'bg-green-100 text-green-800' :
+                              'bg-orange-100 text-orange-800'
+                            }`}>
+                              L{group.depth}
+                            </span>
+                          </div>
                           
-                          return (
-                            <div key={stepNum} className="text-center flex items-center justify-center overflow-hidden">
-                              {stepNum === 1 ? (
-                                // 步骤1：显示条件判断结果
-                                stepsForThisNumber.length > 0 && (
-                                  <span className="text-xl">
-                                    {stepsForThisNumber[0].status === '✅' ? '✅' : 
-                                     stepsForThisNumber[0].status === '❌' ? '❌' : ''}
-                                  </span>
-                                )
-                              ) : (
-                                // 其他步骤：显示递归调用和结果 - 确保不溢出
-                                <div className="flex flex-col items-center justify-center gap-1 min-h-[2rem] w-full overflow-hidden">
-                                  {stepsForThisNumber.map((step, idx) => (
-                                    <div key={idx} className={`px-1 py-1 rounded text-xs font-mono ${
-                                      step.phase === 'entry' ? 'bg-blue-50 border border-blue-200 text-blue-700' :
-                                      'bg-green-50 border border-green-200 text-green-700'
-                                    } break-words text-center leading-tight max-w-full`} style={{
-                                      fontSize: '10px',
-                                      wordBreak: 'break-all',
-                                      hyphens: 'auto'
-                                    }}>
-                                      {step.status}
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })}
+                          {/* 函数调用 */}
+                          <div className="font-mono text-sm font-semibold flex items-center">
+                            {group.function_call}
+                          </div>
+
+                          {/* 动态步骤列 */}
+                          {Array.from({length: maxSteps}, (_, i) => {
+                            const stepNum = i + 1;
+                            const stepsForThisNumber = stepsByNumber[stepNum] || [];
+                            
+                            return (
+                              <div key={stepNum} className="text-center flex items-center justify-center overflow-hidden">
+                                {stepNum === 1 ? (
+                                  // 步骤1：显示条件判断结果
+                                  stepsForThisNumber.length > 0 && (
+                                    <span className="text-xl">
+                                      {stepsForThisNumber[0].status === '✅' ? '✅' : 
+                                       stepsForThisNumber[0].status === '❌' ? '❌' : ''}
+                                    </span>
+                                  )
+                                ) : (
+                                  // 其他步骤：显示递归调用和结果 - 确保不溢出
+                                  <div className="flex flex-col items-center justify-center gap-1 min-h-[2rem] w-full overflow-hidden">
+                                    {stepsForThisNumber.map((step, idx) => (
+                                      <div key={idx} className={`px-1 py-1 rounded text-xs font-mono ${
+                                        step.phase === 'entry' ? 'bg-blue-50 border border-blue-200 text-blue-700' :
+                                        'bg-green-50 border border-green-200 text-green-700'
+                                      } break-words text-center leading-tight max-w-full`} style={{
+                                        fontSize: '10px',
+                                        wordBreak: 'break-all',
+                                        hyphens: 'auto'
+                                      }}>
+                                        {step.status}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </>
+              </div>
             );
           }
         })()}
