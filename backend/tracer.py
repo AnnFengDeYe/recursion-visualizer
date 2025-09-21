@@ -388,10 +388,21 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
                     modified_lines.append(' ' * indent + "_tracer.trace_permutation_step(2, locals())")
                     
             elif "nums[start], nums[i] = nums[i], nums[start]" in stripped_line:
-                # 交换行
-                modified_lines.append(line)
+                # 交换行 - 判断是步骤3还是步骤5
                 indent = len(line) - len(line.lstrip())
-                modified_lines.append(' ' * indent + "_tracer.trace_swap_operation(locals())")
+                
+                # 检查这个交换行的上下文来确定是步骤3还是步骤5
+                is_step_3 = True  # 默认是步骤3
+                
+                # 向前查找，如果前面有递归调用，则这是步骤5（回溯交换）
+                for j in range(i-1, max(0, i-5), -1):
+                    if j < len(lines) and f"{self.function_name}(nums, start + 1, result)" in lines[j]:
+                        is_step_3 = False  # 这是步骤5
+                        break
+                
+                step_num = 3 if is_step_3 else 5
+                modified_lines.append(' ' * indent + f"_tracer.trace_permutation_step({step_num}, locals())")
+                modified_lines.append(line)
                 
             elif f"{self.function_name}(nums, start + 1, result)" in stripped_line:
                 # 递归调用行
@@ -545,21 +556,7 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
             
             self.steps.append(step)
     
-    def trace_swap_operation(self, local_vars: Dict[str, Any]):
-        """动态追踪交换操作，使用全局计数器来区分步骤3和步骤5"""
-        if not self.call_stack:
-            return
-            
-        # 全局交换计数器，奇数是步骤3，偶数是步骤5
-        self.swap_counter += 1
-        
-        if self.swap_counter % 2 == 1:
-            step_number = 3  # 奇数 - 初始交换
-        else:
-            step_number = 5  # 偶数 - 回溯交换
-        
-        # 调用原有的追踪方法
-        self.trace_permutation_step(step_number, local_vars)
+
     
     def trace_permutation_return(self, return_value: Any, local_vars: Dict[str, Any]) -> Any:
         """追踪排列函数返回值，每次递归调用都会有一个对应的回归步骤"""

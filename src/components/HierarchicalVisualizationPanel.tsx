@@ -394,7 +394,7 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
             } else if (isRecursiveStep) {
               description = '(进入递归)';
             } else if (isReturnStep) {
-              description = `(回归，结果为${step.result})`;
+              description = '(回归结果)';
             }
             
             const indentText = '  '.repeat(step.depth);

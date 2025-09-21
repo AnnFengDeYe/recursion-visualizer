@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import CodeEditor from './components/CodeEditor.js';
 import StepAnnotator from './components/StepAnnotator.js';
 import HierarchicalVisualizationPanel from './components/HierarchicalVisualizationPanel.js';
@@ -68,6 +68,36 @@ function App() {
     error?: string;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // 用于动态同步宽度的 refs
+  const headerRef = useRef<HTMLDivElement>(null);
+  const mainContentRef = useRef<HTMLDivElement>(null);
+
+  // 同步标题栏和内容区域的宽度
+  const syncWidths = () => {
+    if (headerRef.current && mainContentRef.current) {
+      const mainWidth = mainContentRef.current.scrollWidth;
+      headerRef.current.style.width = `${mainWidth}px`;
+    }
+  };
+
+  // 在可视化数据变化时同步宽度
+  useEffect(() => {
+    // 使用 setTimeout 等待 DOM 更新完成
+    const timer = setTimeout(syncWidths, 100);
+    return () => clearTimeout(timer);
+  }, [visualizationData]);
+
+  // 用 ResizeObserver 监听内容区域尺寸变化
+  useEffect(() => {
+    if (mainContentRef.current) {
+      const resizeObserver = new ResizeObserver(() => {
+        syncWidths();
+      });
+      resizeObserver.observe(mainContentRef.current);
+      return () => resizeObserver.disconnect();
+    }
+  }, []);
 
   // 处理模板切换
   const handleTemplateChange = (template: 'factorial' | 'fibonacci' | 'permutation') => {
@@ -113,10 +143,10 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="w-full overflow-x-auto">
-        {/* 动态宽度容器 - 跟随内容自适应 */}
-        <div style={{
-          width: 'fit-content',
-          minWidth: '100vw'
+        {/* 标题栏 - 使用 ref 动态同步宽度 */}
+        <div ref={headerRef} style={{
+          minWidth: '100vw',
+          width: 'fit-content'
         }}>
           <header className="bg-white shadow-sm border-b">
             <div className="px-4 sm:px-6 lg:px-8">
@@ -128,11 +158,20 @@ function App() {
               </div>
             </div>
           </header>
+        </div>
 
+        {/* 主内容区域 - 使用 ref 监听宽度变化 */}
+        <div ref={mainContentRef} style={{
+          minWidth: '100vw',
+          width: 'fit-content'
+        }}>
           <main className="px-4 sm:px-6 lg:px-8 py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" style={{
+              width: 'fit-content',
+              minWidth: '100%'
+            }}>
               {/* 左侧：代码编辑和设置 */}
-              <div className="space-y-6">
+              <div className="space-y-6" style={{ minWidth: 'fit-content' }}>
             <div className="bg-white rounded-lg shadow-sm border p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">代码编辑器</h2>
