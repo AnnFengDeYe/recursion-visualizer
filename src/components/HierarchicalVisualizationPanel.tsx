@@ -4,7 +4,7 @@ import type { ExecutionStep } from '../types';
 interface VisualizationPanelProps {
   data: {
     steps: ExecutionStep[];
-    finalResult: any;
+    final_result: any;
     success: boolean;
     error?: string;
   } | null;
@@ -102,12 +102,16 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
           <h3 className="text-lg font-semibold text-green-800">最终结果</h3>
         </div>
         <p className="text-green-700 text-lg font-mono">
-          {JSON.stringify(data.finalResult)}
+          {data.final_result === null || data.final_result === undefined
+            ? '无返回值'
+            : (typeof data.final_result === 'object'
+                ? JSON.stringify(data.final_result)
+                : String(data.final_result))}
         </p>
       </div>
 
       {/* 递归执行过程可视化 */}
-      <div className="bg-gray-50 rounded-lg p-6">
+      <div className="bg-gray-50 rounded-lg p-6 overflow-auto">
         <h3 className="text-lg font-semibold mb-4">递归执行过程（缩进编号法）</h3>
         
         {(() => {
@@ -117,15 +121,15 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
           if (isPermutationFunction) {
             // 排列函数专用布局 - 紧凑且自适应的可视化
             return (
-              <div className="w-full overflow-hidden">
+              <div className="w-full">
                 {/* 排列函数紧凑容器 */}
                 <div className="overflow-x-auto">
-                  <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-3 mx-auto" style={{
+                  <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-3" style={{
                     width: 'fit-content',
-                    maxWidth: '100%'
+                    minWidth: '100%'
                   }}>
                 <div className="grid gap-3 mb-4 pb-2 border-b border-gray-300 font-semibold text-gray-700 text-sm" style={{
-                  gridTemplateColumns: `70px 180px repeat(${maxSteps}, minmax(120px, 1fr))`
+                  gridTemplateColumns: `70px 180px repeat(${maxSteps}, minmax(150px, 1fr))`
                 }}>
                   <div className="text-center">层级</div>
                   <div>函数调用</div>
@@ -154,7 +158,7 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
                         key={group.call_id} 
                         className="grid gap-3 py-2 px-3 hover:bg-gray-50 rounded border border-gray-100 transition-colors"
                         style={{
-                          gridTemplateColumns: `70px 180px repeat(${maxSteps}, minmax(120px, 1fr))`,
+                          gridTemplateColumns: `70px 180px repeat(${maxSteps}, minmax(150px, 1fr))`,
                           backgroundColor: group.depth > 0 ? `rgba(59, 130, 246, ${0.04 * group.depth})` : 'transparent'
                         }}
                       >
@@ -181,25 +185,30 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
                           const stepsForThisNumber = stepsByNumber[stepNum] || [];
                           
                           return (
-                            <div key={stepNum} className="flex flex-col items-center justify-center min-h-[2.5rem] p-1 rounded bg-gray-50 border border-gray-200">
+                            <div key={stepNum} className="flex flex-col items-start justify-start min-h-[3rem] p-2 rounded bg-gray-50 border border-gray-200 gap-1 overflow-hidden">
                               {stepNum === 1 ? (
                                 // 步骤1：显示条件判断结果
                                 stepsForThisNumber.length > 0 && (
-                                  <span className="text-lg">
+                                  <span className="text-lg mx-auto">
                                     {stepsForThisNumber[0].status === '✅' ? '✅' : 
                                      stepsForThisNumber[0].status === '❌' ? '❌' : ''}
                                   </span>
                                 )
                               ) : (
-                                // 其他步骤：显示递归调用和结果
-                                <div className="flex flex-col items-center justify-center gap-1 w-full">
+                                // 其他步骤：显示递归调用和结果，防止溢出
+                                <div className="flex flex-col items-center justify-center gap-1 w-full overflow-hidden">
                                   {stepsForThisNumber.map((step, idx) => (
-                                    <div key={idx} className={`px-1 py-0.5 rounded text-xs font-mono text-center w-full break-words ${
+                                    <div key={idx} className={`px-1 py-1 rounded text-xs font-mono text-center ${
                                       step.phase === 'entry' ? 'bg-blue-50 border border-blue-200 text-blue-700' :
                                       'bg-green-50 border border-green-200 text-green-700'
-                                    }`} style={{
-                                      lineHeight: '1.1',
-                                      fontSize: '10px'
+                                    } leading-tight break-words max-w-full`} style={{
+                                      fontSize: '9px',
+                                      minHeight: '20px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      wordBreak: 'break-all',
+                                      hyphens: 'auto'
                                     }}>
                                       {step.status}
                                     </div>
@@ -223,7 +232,7 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
               <>
                 {/* 表头 */}
                 <div className="grid gap-4 mb-4 pb-2 border-b border-gray-300 font-semibold text-gray-700" style={{
-                  gridTemplateColumns: `80px 200px repeat(${maxSteps}, 1fr)`
+                  gridTemplateColumns: `80px 200px repeat(${maxSteps}, minmax(200px, 1fr))`
                 }}>
                   <div className="text-center">层级</div>
                   <div>函数调用</div>
@@ -253,7 +262,7 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
                         key={group.call_id} 
                         className="grid gap-4 py-2 px-3 hover:bg-gray-100 rounded border-l-4 border-transparent hover:border-blue-300"
                         style={{
-                          gridTemplateColumns: `80px 200px repeat(${maxSteps}, 1fr)`,
+                          gridTemplateColumns: `80px 200px repeat(${maxSteps}, minmax(200px, 1fr))`,
                           backgroundColor: group.depth > 0 ? `rgba(59, 130, 246, ${0.05 * group.depth})` : 'transparent'
                         }}
                       >
@@ -280,7 +289,7 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
                           const stepsForThisNumber = stepsByNumber[stepNum] || [];
                           
                           return (
-                            <div key={stepNum} className="text-center flex items-center justify-center">
+                            <div key={stepNum} className="text-center flex items-center justify-center overflow-hidden">
                               {stepNum === 1 ? (
                                 // 步骤1：显示条件判断结果
                                 stepsForThisNumber.length > 0 && (
@@ -290,13 +299,17 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
                                   </span>
                                 )
                               ) : (
-                                // 其他步骤：显示递归调用和结果
-                                <div className="flex flex-col items-center justify-center gap-1 min-h-[2rem]">
+                                // 其他步骤：显示递归调用和结果 - 确保不溢出
+                                <div className="flex flex-col items-center justify-center gap-1 min-h-[2rem] w-full overflow-hidden">
                                   {stepsForThisNumber.map((step, idx) => (
-                                    <div key={idx} className={`px-3 py-1 rounded text-xs font-mono whitespace-nowrap ${
+                                    <div key={idx} className={`px-1 py-1 rounded text-xs font-mono ${
                                       step.phase === 'entry' ? 'bg-blue-50 border border-blue-200 text-blue-700' :
                                       'bg-green-50 border border-green-200 text-green-700'
-                                    }`}>
+                                    } break-words text-center leading-tight max-w-full`} style={{
+                                      fontSize: '10px',
+                                      wordBreak: 'break-all',
+                                      hyphens: 'auto'
+                                    }}>
                                       {step.status}
                                     </div>
                                   ))}
@@ -395,7 +408,11 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
           
           {/* 最终结果 */}
           <div className="mt-4 pt-2 border-t border-gray-200 font-semibold text-green-600 whitespace-nowrap">
-            最终结果: {data.finalResult} ✅
+            最终结果: {data.final_result === null || data.final_result === undefined
+              ? '无返回值'
+              : (typeof data.final_result === 'object'
+                  ? JSON.stringify(data.final_result)
+                  : String(data.final_result))} ✅
           </div>
         </div>
       </div>
