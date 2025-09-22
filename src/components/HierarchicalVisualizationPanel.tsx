@@ -381,7 +381,9 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
           {data.steps.map((step, index) => {
             const isReturnStep = step.phase === 'return';
             const isConditionStep = step.step_number === 1;
-            const isLoopStep = step.step_number === 2 && step.phase === 'entry';
+            // 只有排列函数（permute_helper）才有循环步骤
+            const isPermutationFunction = step.function_call.includes('permute_helper');
+            const isLoopStep = step.step_number === 2 && step.phase === 'entry' && isPermutationFunction;
             const isRecursiveStep = step.step_number === 4 && step.phase === 'entry';
             
             // 生成说明文本

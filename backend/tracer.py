@@ -237,11 +237,22 @@ class HierarchicalRecursionTracer:
         self.steps.append(step)
     
     def trace_return(self, return_value: Any, current_n: int) -> Any:
-        """追踪函数返回值"""
+        """追踪函数返回值，基本情况不添加回归步骤"""
         if not self.call_stack:
             return return_value
             
+        # 检查是否是基本情况
+        # 阶乘函数：n <= 1 是基本情况
+        # Fibonacci函数：n <= 1 是基本情况
+        is_base_case = current_n <= 1
+        
         current_call = self.call_stack.pop()  # 弹出当前调用
+        
+        # 基本情况不添加回归步骤，因为没有发起递归调用
+        if is_base_case:
+            return return_value
+            
+        # 非基本情况才添加回归步骤
         depth = current_call['depth']
         call_id = current_call['call_id']
         
