@@ -56,10 +56,10 @@ const FUNCTION_TEMPLATES = {
 };
 
 function App() {
-  const [selectedTemplate, setSelectedTemplate] = useState<'factorial' | 'fibonacci' | 'permutation'>('fibonacci');
-  const [functionName, setFunctionName] = useState<string>('fibonacci');
-  const [args, setArgs] = useState<string>('[3]');
-  const [stepAnnotations, setStepAnnotations] = useState<Record<number, string>>(FUNCTION_TEMPLATES.fibonacci.stepAnnotations);
+  const [selectedTemplate, setSelectedTemplate] = useState<'factorial' | 'fibonacci' | 'permutation'>('factorial');
+  const [functionName, setFunctionName] = useState<string>('factorial');
+  const [args, setArgs] = useState<string>('[4]');
+  const [stepAnnotations, setStepAnnotations] = useState<Record<number, string>>(FUNCTION_TEMPLATES.factorial.stepAnnotations);
   const [visualizationData, setVisualizationData] = useState<{
     steps: ExecutionStep[];
     final_result: any;
@@ -195,7 +195,7 @@ function App() {
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    阶乘函数
+                    阶乘递归
                   </button>
                   <button
                     onClick={() => handleTemplateChange('fibonacci')}
@@ -205,7 +205,7 @@ function App() {
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    Fibonacci函数
+                    Fibonacci递归
                   </button>
                   <button
                     onClick={() => handleTemplateChange('permutation')}
@@ -215,7 +215,7 @@ function App() {
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
-                    排列生成
+                    排列递归
                   </button>
                 </div>
               </div>

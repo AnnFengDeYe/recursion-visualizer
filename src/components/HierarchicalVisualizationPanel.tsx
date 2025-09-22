@@ -311,18 +311,24 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
                                 ) : (
                                   // 其他步骤：显示递归调用和结果 - 确保不溢出
                                   <div className="flex flex-col items-center justify-center gap-1 min-h-[2rem] w-full overflow-hidden">
-                                    {stepsForThisNumber.map((step, idx) => (
-                                      <div key={idx} className={`px-1 py-1 rounded text-xs font-mono ${
-                                        step.phase === 'entry' ? 'bg-blue-50 border border-blue-200 text-blue-700' :
-                                        'bg-green-50 border border-green-200 text-green-700'
-                                      } break-words text-center leading-tight max-w-full`} style={{
-                                        fontSize: '10px',
-                                        wordBreak: 'break-all',
-                                        hyphens: 'auto'
-                                      }}>
-                                        {step.status}
-                                      </div>
-                                    ))}
+                                    {stepsForThisNumber.map((step, idx) => {
+                                      // 检查是否为Fibonacci函数
+                                      const isFibonacci = step.function_call.includes('fibonacci');
+                                      return (
+                                        <div key={idx} className={`px-1 py-1 rounded font-mono ${
+                                          isFibonacci ? 'text-xs' : 'text-sm'
+                                        } ${
+                                          step.phase === 'entry' ? 'bg-blue-50 border border-blue-200 text-blue-700' :
+                                          'bg-green-50 border border-green-200 text-green-700'
+                                        } break-words text-center leading-tight max-w-full`} style={{
+                                          fontSize: isFibonacci ? '11px' : undefined,
+                                          wordBreak: 'break-all',
+                                          hyphens: 'auto'
+                                        }}>
+                                          {step.status}
+                                        </div>
+                                      );
+                                    })}
                                   </div>
                                 )}
                               </div>
