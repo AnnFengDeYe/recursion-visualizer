@@ -381,7 +381,8 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
           {data.steps.map((step, index) => {
             const isReturnStep = step.phase === 'return';
             const isConditionStep = step.step_number === 1;
-            const isRecursiveStep = step.step_number === 2 && step.phase === 'entry';
+            const isLoopStep = step.step_number === 2 && step.phase === 'entry';
+            const isRecursiveStep = step.step_number === 4 && step.phase === 'entry';
             
             // 生成说明文本
             let description = '';
@@ -391,6 +392,8 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
               } else {
                 description = '(条件不满足)';
               }
+            } else if (isLoopStep) {
+              description = '(进入循环)';
             } else if (isRecursiveStep) {
               description = '(进入递归)';
             } else if (isReturnStep) {
