@@ -341,37 +341,46 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
         {/* 图例 */}
         <div className="mt-6 pt-4 border-t border-gray-300">
           <h4 className="text-sm font-semibold text-gray-700 mb-3">图例说明</h4>
-          <div className="grid grid-cols-2 gap-6 text-sm text-gray-600">
-            <div>
+          
+          {/* 上部区域：左右布局 */}
+          <div className="flex justify-between gap-8 text-sm text-gray-600 mb-4">
+            <div className="flex-1 text-center">
               <h5 className="font-semibold mb-2 text-gray-700">步骤状态标记</h5>
-              <div className="flex items-center space-x-1 mb-1">
+              <div className="flex items-center justify-center space-x-1 mb-1">
                 <span className="text-xl">✅</span>
                 <span>条件满足/到达基本情况</span>
               </div>
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center justify-center space-x-1">
                 <span className="text-xl">❌</span>
                 <span>条件不满足</span>
               </div>
             </div>
-            <div>
+            <div className="flex-1 text-center">
               <h5 className="font-semibold mb-2 text-gray-700">递归阶段区分</h5>
-              <div className="flex items-center space-x-1 mb-1">
+              <div className="flex items-center justify-center space-x-1 mb-1">
                 <div className="bg-blue-50 border border-blue-200 px-2 py-1 rounded">
                   <span className="text-blue-700 font-mono text-xs">递归表达式</span>
                 </div>
+                <span>→</span>
                 <span>递出调用</span>
               </div>
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center justify-center space-x-1">
                 <div className="bg-green-50 border border-green-200 px-2 py-1 rounded">
                   <span className="text-green-700 font-mono text-xs">= 结果值</span>
                 </div>
+                <span>→</span>
                 <span>回归计算</span>
               </div>
             </div>
           </div>
-          <div className="mt-3 text-xs text-gray-500">
-            • 函数调用按调用深度缩进显示，体现层次关系<br/>
-            • 递出阶段：函数调用向更深层级递进；回归阶段：从深层级返回并计算结果
+          
+          {/* 下部区域：文字说明 */}
+          <div className="text-xs text-gray-500 text-center">
+            <div className="inline-block text-left">
+              <div>• <strong>层级关系</strong>: 通过缩进表示函数调用的深度和嵌套关系</div>
+              <div>• <strong>递出阶段</strong>：函数调用向更深层级递进</div>
+              <div>• <strong>回归阶段</strong>：从深层级返回并计算结果</div>
+            </div>
           </div>
         </div>
       </div>

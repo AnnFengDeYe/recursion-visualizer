@@ -56,11 +56,10 @@ const FUNCTION_TEMPLATES = {
 };
 
 function App() {
-  const [selectedTemplate, setSelectedTemplate] = useState<'factorial' | 'fibonacci' | 'permutation'>('factorial');
-  const [code, setCode] = useState<string>(FUNCTION_TEMPLATES.factorial.code);
-  const [functionName, setFunctionName] = useState<string>('factorial');
-  const [args, setArgs] = useState<string>('[4]');
-  const [stepAnnotations, setStepAnnotations] = useState<Record<number, string>>(FUNCTION_TEMPLATES.factorial.stepAnnotations);
+  const [selectedTemplate, setSelectedTemplate] = useState<'factorial' | 'fibonacci' | 'permutation'>('fibonacci');
+  const [functionName, setFunctionName] = useState<string>('fibonacci');
+  const [args, setArgs] = useState<string>('[3]');
+  const [stepAnnotations, setStepAnnotations] = useState<Record<number, string>>(FUNCTION_TEMPLATES.fibonacci.stepAnnotations);
   const [visualizationData, setVisualizationData] = useState<{
     steps: ExecutionStep[];
     final_result: any;
@@ -103,7 +102,6 @@ function App() {
   const handleTemplateChange = (template: 'factorial' | 'fibonacci' | 'permutation') => {
     setSelectedTemplate(template);
     const templateData = FUNCTION_TEMPLATES[template];
-    setCode(templateData.code);
     setFunctionName(templateData.functionName);
     setArgs(templateData.args);
     setStepAnnotations(templateData.stepAnnotations);
@@ -118,7 +116,7 @@ function App() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          code,
+          code: FUNCTION_TEMPLATES[selectedTemplate].code,
           function_name: functionName,
           args: JSON.parse(args),
           step_annotations: stepAnnotations
@@ -222,9 +220,9 @@ function App() {
                 </div>
               </div>
               <CodeEditor 
-                value={code} 
-                onChange={setCode}
+                value={FUNCTION_TEMPLATES[selectedTemplate].code} 
                 language="python"
+                readOnly={true}
               />
             </div>
 
@@ -238,8 +236,8 @@ function App() {
                   <input
                     type="text"
                     value={functionName}
-                    onChange={(e) => setFunctionName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 cursor-not-allowed"
                     placeholder="例如: factorial"
                   />
                 </div>
@@ -260,7 +258,6 @@ function App() {
 
             <StepAnnotator
               annotations={stepAnnotations}
-              onChange={setStepAnnotations}
             />
 
             <button
