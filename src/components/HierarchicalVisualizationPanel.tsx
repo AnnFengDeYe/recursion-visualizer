@@ -97,17 +97,17 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
     <div className="space-y-6 w-full overflow-x-auto">
       {/* 最终结果 */}
       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-        <div className="flex items-center mb-2">
+        <div className="flex items-center">
           <div className="text-green-600 text-xl mr-2">✅</div>
-          <h3 className="text-lg font-semibold text-green-800">最终结果</h3>
+          <h3 className="text-lg font-semibold text-green-800 mr-2">最终结果</h3>
+          <span className="text-green-700 text-lg font-mono">
+            {data.final_result === null || data.final_result === undefined
+              ? '无返回值'
+              : (typeof data.final_result === 'object'
+                  ? JSON.stringify(data.final_result)
+                  : String(data.final_result))}
+          </span>
         </div>
-        <p className="text-green-700 text-lg font-mono">
-          {data.final_result === null || data.final_result === undefined
-            ? '无返回值'
-            : (typeof data.final_result === 'object'
-                ? JSON.stringify(data.final_result)
-                : String(data.final_result))}
-        </p>
       </div>
 
       {/* 递归执行过程可视化 */}
@@ -116,7 +116,9 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
         minWidth: '100%',
         overflowX: 'auto'
       }}>
-        <h3 className="text-lg font-semibold mb-4">递归执行过程（缩进编号法）</h3>
+        <h3 className="text-lg font-semibold mb-4">
+          递归执行过程（缩进编号法） <span className="text-sm font-normal text-gray-500">(author: 安枫的叶)</span>
+        </h3>
         
         {(() => {
           const maxSteps = Math.max(...data.steps.map(s => s.step_number));
@@ -189,11 +191,11 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
                           const stepsForThisNumber = stepsByNumber[stepNum] || [];
                           
                           return (
-                            <div key={stepNum} className="flex flex-col items-start justify-start min-h-[3rem] p-2 rounded bg-gray-50 border border-gray-200 gap-1 overflow-hidden">
+                            <div key={stepNum} className="flex flex-col items-center justify-center min-h-[3rem] p-2 rounded bg-gray-50 border border-gray-200 gap-1 overflow-hidden">
                               {stepNum === 1 ? (
                                 // 步骤1：显示条件判断结果
                                 stepsForThisNumber.length > 0 && (
-                                  <span className="text-lg mx-auto">
+                                  <span className="text-lg flex items-center justify-center">
                                     {stepsForThisNumber[0].status === '✅' ? '✅' : 
                                      stepsForThisNumber[0].status === '❌' ? '❌' : ''}
                                   </span>
@@ -297,11 +299,11 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
                             const stepsForThisNumber = stepsByNumber[stepNum] || [];
                             
                             return (
-                              <div key={stepNum} className="text-center flex items-center justify-center overflow-hidden">
+                              <div key={stepNum} className="flex items-center justify-center overflow-hidden min-h-[2rem]">
                                 {stepNum === 1 ? (
                                   // 步骤1：显示条件判断结果
                                   stepsForThisNumber.length > 0 && (
-                                    <span className="text-xl">
+                                    <span className="text-xl flex items-center justify-center">
                                       {stepsForThisNumber[0].status === '✅' ? '✅' : 
                                        stepsForThisNumber[0].status === '❌' ? '❌' : ''}
                                     </span>
@@ -376,7 +378,7 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
 
       {/* 详细执行步骤信息 */}
       <div className="bg-white border rounded-lg p-4">
-        <h3 className="text-lg font-semibold mb-4">详细执行步骤</h3>
+        <h3 className="text-lg font-semibold mb-4">详细执行步骤 <span className="text-sm font-normal text-gray-500">(author: 安枫的叶)</span></h3>
         <div className="max-h-96 overflow-y-auto overflow-x-scroll font-mono text-sm leading-relaxed border border-gray-200 rounded p-2 text-left" style={{ minWidth: '100%' }}>
           {data.steps.map((step, index) => {
             const isReturnStep = step.phase === 'return';
@@ -422,11 +424,7 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
           
           {/* 最终结果 */}
           <div className="mt-4 pt-2 border-t border-gray-200 font-semibold text-green-600 whitespace-nowrap">
-            最终结果: {data.final_result === null || data.final_result === undefined
-              ? '无返回值'
-              : (typeof data.final_result === 'object'
-                  ? JSON.stringify(data.final_result)
-                  : String(data.final_result))} ✅
+            最终结果: {data.final_result === null || data.final_result === undefined ? '无返回值' : (typeof data.final_result === 'object' ? JSON.stringify(data.final_result) : String(data.final_result))} ✅
           </div>
         </div>
       </div>

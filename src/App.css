@@ -40,3 +40,28 @@
 .read-the-docs {
   color: #888;
 }
+
+/* 浮动动画样式 */
+.floating-icon {
+  position: relative;
+  animation: floating 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes floating {
+  0% {
+    transform: translateX(0px);
+  }
+  25% {
+    transform: translateX(50px);
+  }
+  50% {
+    transform: translateX(100px);
+  }
+  75% {
+    transform: translateX(50px);
+  }
+  100% {
+    transform: translateX(0px);
+  }
+}
