@@ -435,23 +435,30 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
         result = local_vars.get('result', [])
         i_val = local_vars.get('i', None)
         
+        # 对于排列函数，层级应该直接等于start值
+        # start=0 → L0, start=1 → L1, start=2 → L2
+        depth = start
+        
         # 精确匹配call_id：使用start参数和调用栈信息
         target_call = None
         
-        # 从调用栈中从后往前找，找到第一个start值匹配的调用
-        for call_info in reversed(self.call_stack):
-            call_args = call_info['args']
-            if len(call_args) >= 2 and call_args[1] == start:
-                target_call = call_info
-                break
-        
-        # 如果没找到匹配的，使用当前栈顶
-        if target_call:
-            current_call = target_call
-        else:
+        # 对于步骤1（函数入口），直接使用栈顶的调用信息
+        if step_number == 1:
             current_call = self.call_stack[-1]
+        else:
+            # 对于其他步骤，从调用栈中从后往前找，找到第一个start值匹配的调用
+            for call_info in reversed(self.call_stack):
+                call_args = call_info['args']
+                if len(call_args) >= 2 and call_args[1] == start:
+                    target_call = call_info
+                    break
             
-        depth = current_call['depth']
+            # 如果没找到匹配的，使用当前栈顶
+            if target_call:
+                current_call = target_call
+            else:
+                current_call = self.call_stack[-1]
+            
         call_id = current_call['call_id']
         
         # 记录nums状态
@@ -464,10 +471,10 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
             'depth': depth
         })
         
-        # 构造函数调用显示
+        # 构造函数调用显示（默认值）
         function_call = f"{self.function_name}({nums}, {start}, {result})"
         
-        # 根据步骤号确定状态
+        # 根据步骤号确定状态和层级
         if step_number == 1:  # 基本情况检查
             condition_met = start == len(nums)
             if condition_met:
@@ -490,7 +497,9 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
             status = f"({nums}, {next_start}, {result})"
             step_result = None
             
-            # 不在这里添加回归追踪，而是在递归调用实际完成后添加
+            # 步骤4本身还是在当前层级，递出之后才产生新层级
+            # 不需要修改depth，保持当前层级
+            function_call = f"{self.function_name}({nums}, {next_start}, {result})"
             
         elif step_number == 5:  # 交换后（回溯）
             if i_val is not None and start < len(nums) and i_val < len(nums):
@@ -501,6 +510,10 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
         else:
             status = "未知步骤"
             step_result = None
+            
+        # 对于非递归调用步骤，使用原来的function_call
+        if step_number != 4:
+            function_call = f"{self.function_name}({nums}, {start}, {result})"
             
         step = ExecutionStep(
             step_number=step_number,
@@ -573,7 +586,10 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
             return return_value
             
         # 非基本情况：添加回归步骤
-        # 找到当前层级的调用信息（发起递归调用的层级）
+        # 回归阶段应该与递出阶段在同一层级，直接使用start值作为层级
+        depth = start  # 使用start值作为层级，与递出阶段保持一致
+        
+        # 找到对应的调用信息用于call_id
         current_call = None
         for call_info in reversed(self.call_stack):
             call_args = call_info['args']
@@ -584,7 +600,6 @@ class PermutationRecursionTracer(HierarchicalRecursionTracer):
         if not current_call:
             return return_value
             
-        depth = current_call['depth']  # 使用发起调用的层级
         call_id = current_call['call_id']
         
         # 构造函数调用显示（显示被调用的函数信息）
