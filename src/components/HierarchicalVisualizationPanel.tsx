@@ -117,7 +117,7 @@ const HierarchicalVisualizationPanel: React.FC<VisualizationPanelProps> = ({ dat
         overflowX: 'auto'
       }}>
         <h3 className="text-lg font-semibold mb-4">
-          递归执行过程（缩进编号法） <span className="text-sm font-normal text-gray-500">(author: 安枫的叶)</span>
+          递归执行过程（编号缩进法） <span className="text-sm font-normal text-gray-500">(author: 安枫的叶)</span>
         </h3>
         
         {(() => {

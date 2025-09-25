@@ -165,7 +165,7 @@ function App() {
                   </div>
                 </div>
                 
-                <p className="text-gray-600">缩进编号法可视化展示</p>
+                <p className="text-gray-600">编号缩进法可视化展示</p>
               </div>
             </div>
           </header>
