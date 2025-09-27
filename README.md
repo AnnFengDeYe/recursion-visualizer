@@ -1,6 +1,6 @@
 # 递归算法可视化工具 🔄
 
-一个强大的递归算法可视化教学工具，采用创新的**缩进编号法**帮助理解递归算法的执行过程。
+递归算法可视化工具，采用创新的**缩进编号法**帮助理解递归算法的执行过程。
 
 ![Version](https://img.shields.io/badge/version-v1.0.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
@@ -212,4 +212,4 @@ recursion-visualizer/
 
 ---
 
-⭐ 如果这个项目对您有帮助，请给我们一个 Star！
+⭐ 如果这个项目对您有帮助，请给一个 Star！
