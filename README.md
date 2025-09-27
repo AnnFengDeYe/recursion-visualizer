@@ -107,7 +107,7 @@ def fibonacci(n):
 
 ### 后端技术栈
 - **FastAPI**: 高性能Python API框架
-- **Python AST**: 抽象语法树代码分析
+- **代码插桩技术**: 动态注入追踪代码
 - **Uvicorn**: ASGI服务器
 - **Pydantic**: 数据验证和设置管理
 
@@ -207,8 +207,7 @@ recursion-visualizer/
 
 ## 📞 联系方式
 
-- **Issues**: [GitHub Issues](https://github.com/your-username/recursion-visualizer/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/recursion-visualizer/discussions)
+安枫的叶：https://space.bilibili.com/295283060?spm_id_from=333.788.0.0
 
 ---
 
